@@ -28,6 +28,106 @@
     <script src="../../common/js/jquery.js"></script>
     <script src="./js/appid.js"></script>
     <script>
+      $(function() {
+        $('.search__btn').on('click', function() {
+          pageNum = 1;
+          page();
+        });
+
+        $(document).on('click','[data-js="page-next"]',function() {
+          console.log('hallo');
+          pageNum = count_up();
+          page();
+          function count_up() {
+            pageNum += 1;
+            return pageNum;
+          }
+        });
+
+        $(document).on('click','[data-js="page-prev"]',function() {
+          console.log('hallo');
+          pageNum = count_down();
+          page();
+          function count_down() {
+            pageNum -= 1;
+            return pageNum;
+          }
+        });
+
+        $(document).on('click','[data-js="page-next"]','[data-js="page-prev"]', function(e) {
+          e.preventDefault();
+        });
+
+          function page() {
+            var keyword = $('.search__text input').val();
+            $('.pager').remove();
+            $('.message,ul').empty();
+            $.ajax({
+              url: 'https://app.rakuten.co.jp/services/api/BooksTotal/Search/20130522',
+              type:'GET',
+              datatype: 'json',
+              data: {
+                applicationId: appId,
+                booksGenreId: '001',
+                hits: '20',
+                keyword: keyword,
+                page:pageNum
+              }
+            })
+            .done(function(data) {
+              console.log(data.hits)
+              if(data.hits > 0) {
+                $.each(data.Items,function(index,item) {
+                  console.log(data.Items)
+                  var list = $('<li class = "lists__item">' + '<div class="lists__item__inner">' + '<a href="' + item.Item.itemUrl + '"class="lists__item__link" target="_blank">' + '<img src="' + item.Item.largeImageUrl + '" class="lists__item__img" alt="' + item.Item.title + '">' + '<p class="lists__item__detail">作品名：  ' + item.Item.title + '</p>' + '<p class="lists__item__detail">作者　： ' + item.Item.author + '</p>' + '<p class="lists__item__detail">出版社：  ' + item.Item.publisherName + '</p>' + '</a>' + '</div>' + '</li>');
+                  $('.lists').prepend(list);
+                }),
+                $('ul').after('<div class="pager" data-js="pager">' + '<div class="counter">' + '<span class="counter-current">'+ data.page +'</span>/<span class="counter-all">'+ data.pageCount +'</span>' + '</div>' + '<div class="btn-wrapper">' + '<a class="btn-item" data-js="page-prev" href="">前へ</a>' + '<a class="btn-item" data-js="page-next" href='+""+'>次へ</a>' + '</div>' + '</div>');
+              }else {
+                var no_keyword = $('<p class="error-message">検索結果が見つかりませんでした.<br>別のキーワードで検索して下さい.</p>');
+                $('.message').prepend(no_keyword);
+              };
+              if(data.page == 1 && data.page == data.pageCount) {
+                $('[data-js="page-prev"],[data-js="page-next"]').addClass("disabled")
+                                                              .click(function(e){
+                  e.preventDefault();
+                });
+              }else{
+                if(data.page == data.pageCount) {
+                  $('[data-js="page-next"]').addClass("disabled")
+                                            .click(function(e){
+                  e.preventDefault();
+                });
+                }else{
+                  if(data.page == 1) {
+                    $('[data-js="page-prev"]').addClass("disabled")
+                                              .click(function(e){
+                    e.preventDefault();
+                });
+                  }
+                }
+              }
+              $('[data-js="page-prev"]').click(function() {
+              });
+            })
+            .fail(function (jqXHR) {
+              console.log(jqXHR.status);
+              if(jqXHR.status == 0) {
+                var communication_error = $('<p class="error-message">通信に失敗しました。インターネットの接続をご確認ください。</p>');
+                $('.message').prepend(communication_error);
+              }else {
+                if(jqXHR.status == 400) {
+                  var no_text = $('<p class="error-message">検索文字が入力されていません。</p>');
+                  $('.message').prepend(no_text);
+                }else{
+                  if(jqXHR.status == 429) {
+                  var many_request = $('<p class="error-message">リクエスト過多です。しばらく時間を置いてからお試しください。</p>');
+                  $('.message').prepend(many_request);
+                }}
+              }
+            });
+          }
+      });
       // 楽天ブックスの総合検索APIを使って製作してください。
       // answerの挙動を良く見てね！
       //

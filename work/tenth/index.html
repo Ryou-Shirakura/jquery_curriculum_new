@@ -60,7 +60,6 @@
           }).done(function(data) {
             if (data.hits > 0) {
               $.each(data.Items,function(index,item) {
-                console.log(data.Items);
                 var list = $(
                   '<li class = "lists__item">' +
                     '<div class = "lists__item__inner">' +

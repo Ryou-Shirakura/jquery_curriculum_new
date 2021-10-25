@@ -29,12 +29,17 @@
     <script src="./js/appid.js"></script>
     <script>
       $(function() {
+        var canAjax = true;
         var pageNum = ''
         var book = ''
 
         $('.search__btn').on('click', function() {
           pageNum = 1;
           book = $('.search__text__input').val();
+          if(!canAjax) {
+            return;
+          }
+          canAjax = false;
           ajax();
         });
 
@@ -54,7 +59,7 @@
 
         function ajax() {
           var word = book;
-          $('ul, .message').empty();
+          $('.lists, .message').empty();
           $('.pager').remove();
           $.ajax({
             url: 'https://app.rakuten.co.jp/services/api/BooksTotal/Search/20130522',
@@ -68,64 +73,67 @@
               page: pageNum
             }
           }).done(function(data) {
-            maincontent (data)
+            information (data)
           }).fail(function (xhr) {
-            error(xhr)
+            error(xhr);
+          }).always(function (){
+            canAjax = true;
           });
         }
-        function maincontent (data) {
-          if (data.hits > 0) {
-                $.each(data.Items,function(index,item) {
-                  var list = $(
-                    '<li class = "lists__item">' +
-                      '<div class = "lists__item__inner">' +
-                        '<a href = "' + item.Item.itemUrl + '"class = "lists__item__link" target = "_blank">' +
-                          '<img src = "' + item.Item.largeImageUrl + '"class = "lists__item__img" alt = "' + item.Item.title + '">' +
-                          '<p class = "lists__item__detail">作品名：' + item.Item.title + '</p>' +
-                          '<p class = "lists__item__detail">作者　：' + item.Item.author + '</p>' +
-                          '<p class = "lists__item__detail">出版社：' + item.Item.publisherName + '</p>' +
-                        '</a>' +
-                      '</div>' +
-                    '</li>');
-                  $('ul').prepend(list);
-                })
-                $('ul').after('<div class="pager" data-js="pager"></div>');
-              } else {
-                var messageNot = $('<p class = "error-message">検索結果が見つかりませんでした。<br>別のキーワードで検索して下さい。</p>');
-                $('.message').prepend(messageNot);
-              }
-              var pager = $(
+        
+        function information (data) {
+          if (data.hits <= 0) {
+            var messageNot = $('<p class = "error-message">検索結果が見つかりませんでした。<br>別のキーワードで検索して下さい。</p>');
+            $('.message').prepend(messageNot);
+          }else {
+            var list = ''
+            $.each(data.Items,function(index,item) {
+              list += (
+                '<li class = "lists__item">' +
+                  '<div class = "lists__item__inner">' +
+                    '<a href = "' + item.Item.itemUrl + '"class = "lists__item__link" target = "_blank">' +
+                      '<img src = "' + item.Item.largeImageUrl + '"class = "lists__item__img" alt = "' + item.Item.title + '">' +
+                      '<p class = "lists__item__detail">作品名：' + item.Item.title + '</p>' +
+                      '<p class = "lists__item__detail">作者　：' + item.Item.author + '</p>' +
+                      '<p class = "lists__item__detail">出版社：' + item.Item.publisherName + '</p>' +
+                    '</a>' +
+                  '</div>' +
+                '</li>');
+            })
+            $('.lists').prepend(list);
+            $('.lists').after(
+              '<div class="pager" data-js="pager">'+
                 '<div class="counter">' +
                   '<span class="counter-current">'+ data.page + '</span>/<span class="counter-all">' + data.pageCount + '</span>' +
                 '</div>' +
                 '<div class="btn-wrapper">' +
                   '<a class="btn-item" data-js="page-prev" href="">前へ</a>' +
                   '<a class="btn-item" data-js="page-next" href="">次へ</a>' +
-                '</div>');
-              $('.pager').prepend(pager);
-              if(data.page === 1 && data.page === data.pageCount) {
-                $('[data-js="page-prev"],[data-js="page-next"]').addClass('disabled')
-              }else if(data.page === 1) {
-                $('[data-js="page-prev"]').addClass('disabled')
-              }else if(data.page === data.pageCount) {
-                $('[data-js="page-next"]').addClass('disabled')
-              }};
-        
+                '</div>'+
+              '</div>');
+            var firstPage = 1;
+            if(data.page === firstPage) {
+              $('[data-js="page-prev"]').addClass('disabled')
+            }
+            if(data.page === data.pageCount) {
+              $('[data-js="page-next"]').addClass('disabled')
+            }
+          };
+        }
         function error(xhr){
+          var message =""
           switch (xhr.status){
               case 400:
-                var messageNull = $('<p class = "error-message">検索文字を入力してください。</p>');
-                $('.message').prepend(messageNull);
+                message = $('<p class = "error-message">検索文字を入力してください。</p>');
                 break;
               case 429:
-                var messageExcess = $('<p class = "error-message">リクエスト過多です。しばらく時間を置いてからお試しください。</p>');
-                $('.message').prepend(messageExcess);
+                message = $('<p class = "error-message">リクエスト過多です。しばらく時間を置いてからお試しください。</p>');
                 break;
               case 0:
-                var messageNot = $('<p class = "error-message">通信に失敗しました。インターネットの接続をご確認ください。</p>');
-                $('.message').prepend(messageNot);
+                message = $('<p class = "error-message">通信に失敗しました。インターネットの接続をご確認ください。</p>');
                 break;
             }
+            $('.message').prepend(message);
         }
         function countUp() {
           pageNum ++;

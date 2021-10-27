@@ -46,15 +46,15 @@
         $(document).on('click', '[data-js="page-next"]', function(e) {
           e.preventDefault();
           if($(this).hasClass('disabled')) return;
-            countUp();
-            ajax();
+          countUp();
+          ajax();
         });
 
         $(document).on('click', '[data-js="page-prev"]', function(e) {
           e.preventDefault();
           if($(this).hasClass('disabled')) return;
-            countDown();
-            ajax();
+          countDown();
+          ajax();
         });
 
         function ajax() {
@@ -121,7 +121,7 @@
           };
         }
         function error(xhr){
-          var message =""
+          var message =''
           switch (xhr.status){
               case 400:
                 message = $('<p class = "error-message">検索文字を入力してください。</p>');

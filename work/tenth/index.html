@@ -46,19 +46,18 @@
         $(document).on('click', '[data-js="page-next"]', function(e) {
           e.preventDefault();
           if($(this).hasClass('disabled')) return;
-          countUp();
+          pageNum ++;
           ajax();
         });
 
         $(document).on('click', '[data-js="page-prev"]', function(e) {
           e.preventDefault();
           if($(this).hasClass('disabled')) return;
-          countDown();
+          pageNum --;
           ajax();
         });
 
         function ajax() {
-          var word = book;
           $('.lists, .message').empty();
           $('.pager').remove();
           $.ajax({
@@ -68,7 +67,7 @@
             data: {
               applicationId: appId,
               booksGenreId: '001',
-              keyword: word,
+              keyword: book,
               hits: '20',
               page: pageNum
             }
@@ -82,7 +81,7 @@
         }
         
         function information (data) {
-          if (data.hits <= 0) {
+          if (data.hits = 0) {
             var messageNot = $('<p class = "error-message">検索結果が見つかりませんでした。<br>別のキーワードで検索して下さい。</p>');
             $('.message').prepend(messageNot);
           }else {
@@ -111,8 +110,7 @@
                   '<a class="btn-item" data-js="page-next" href="">次へ</a>' +
                 '</div>'+
               '</div>');
-            var firstPage = 1;
-            if(data.page === firstPage) {
+            if(data.page === 1) {
               $('[data-js="page-prev"]').addClass('disabled')
             }
             if(data.page === data.pageCount) {
@@ -135,16 +133,6 @@
             }
             $('.message').prepend(message);
         }
-        function countUp() {
-          pageNum ++;
-          return pageNum;
-        }
-
-        function countDown() {
-          pageNum -= 1;
-          return pageNum;
-        }
-        
       });
       // 楽天ブックスの総合検索APIを使って製作してください。
       // answerの挙動を良く見てね！
